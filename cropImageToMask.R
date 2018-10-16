@@ -1,4 +1,4 @@
-#!/share/apps/R/R-3.2.5/bin/Rscript
+#!/data/grossman/pipedream2018/bin/R/R-3.4.3/bin/Rscript
 
 library("optparse")
 
@@ -59,11 +59,4 @@ boundingBox = findBB(coverageSubj)
 cropped = cropToBB(originated, boundingBox$bbMin, boundingBox$bbMax)
 
 antsImageWrite(cropped, opt$outputFile)
-
-
-
-
-
-
-
 
