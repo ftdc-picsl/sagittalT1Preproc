@@ -44,8 +44,11 @@ my $usage = qq{
      --bias-correct
        Winsorize outliers and run N4 on the input image (default = 1).
 
+     --quick
+       Quicker registration (default = 0).
+
      --float 
-       Use float precision (default = 0).
+       Use float precision (default = 1).
 
   Requires ANTs (set ANTSPATH) and ANTsR (library(ANTsR) should work).
 };
@@ -73,9 +76,8 @@ my $templateRegMask = "";
 my $doN4 = 1;
 my $laplacianSigma = 0;
 my @segPriors = ();
-my $useFloatPrecision = 0;
+my $useFloatPrecision = 1;
 my $quick = 0;
-my $saveTransforms = 0;
 
 GetOptions ("input=s" => \$inputHead,
 	    "output=s" => \$outputFile,
@@ -83,11 +85,8 @@ GetOptions ("input=s" => \$inputHead,
 	    "template-coverage-mask=s" => \$templateCoverageMask,
 	    "template-reg-mask=s" => \$templateRegMask,
 	    "bias-correct=i" => \$doN4,
-	    "laplacian-sigma=f" => \$laplacianSigma,
-	    "seg-priors=s{1,}" => \@segPriors,
 	    "float=i" => \$useFloatPrecision,
-            "quick=i" => \$quick,
-            "save-transforms=i" => \$saveTransforms
+            "quick=i" => \$quick
     )
     or die("Error in command line arguments\n");
 
@@ -162,7 +161,7 @@ my $initialAffine = "${tmpDir}/initialAffine.mat";
 # searchFactor = step size
 # arcFraction = fraction of arc to search 1 = +/- 180 degrees, 0.5 = +/- 90 degrees
 #
-my $antsAICmd = "${antsPath}antsAI -d 3 -v 1 -m Mattes[$downsampleTemplate, $downsampleHeadImage, 32, Regular, 0.2] -t Affine[0.1] -s [20, 0.12] -c 10 -g [0x40x40, 40] -o $initialAffine";
+my $antsAICmd = "${antsPath}antsAI -d 3 -v 1 -m Mattes[$downsampleTemplate, $downsampleHeadImage, 32, Regular, 0.2] -t Affine[0.1] -s [20, 0.12] -c 10 -g [40, 0x40x40] -o $initialAffine";
 
 
 if ($useTemplateRegMask) {
@@ -192,6 +191,11 @@ my $rigidIts = "50x25x0";
 
 # Some more affine
 my $affineIts = "100x100x50x0";
+
+if ($quick) {
+  $rigidIts = "25x10x0";
+  $affineIts = "50x50x10x0";
+}
 
 my $regAffineCmd = "${antsPath}antsRegistration -d 3 -u $histogramMatch -w [0, 0.999] --verbose --float $useFloatPrecision -o $transformPrefix -r $initialAffine -t Rigid[0.1] -m Mattes[$template, $headImage, 1, 32, Regular, 0.2] -f 4x2x1 -s 2x1x0mm -c [${rigidIts},1e-7,10] $affineRegMaskString -t Affine[0.1] -m Mattes[$template, $headImage, 1, 32, Regular, 0.2] -f 6x4x2x1 -s 3x2x1x0mm -c [${affineIts},1e-7,10] $affineRegMaskString";
 
