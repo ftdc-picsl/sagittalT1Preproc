@@ -74,7 +74,6 @@ my ($inputHead, $template, $templateCoverageMask, $outputFile);
 my $useTemplateRegMask = 0;
 my $templateRegMask = "";
 my $doN4 = 1;
-my $laplacianSigma = 0;
 my @segPriors = ();
 my $useFloatPrecision = 1;
 my $quick = 0;
@@ -89,8 +88,6 @@ GetOptions ("input=s" => \$inputHead,
             "quick=i" => \$quick
     )
     or die("Error in command line arguments\n");
-
-my $useLaplacian = ($laplacianSigma > 0);
 
 if ( -f $templateRegMask ) {
     $useTemplateRegMask = 1;
